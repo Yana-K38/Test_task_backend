@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework',
     'app',
+    'django.core.mail',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +65,10 @@ SOCIAL_AUTH_AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
 SOCIAL_AUTH_AUTH0_KEY= os.getenv("AUTH0_CLIENT_ID")
 SOCIAL_AUTH_AUTH0_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
 SOCIAL_AUTH_AUTH0_SCOPE = ['openid', 'profile', 'email']
+
+# SOCIAL_AUTH_PIPELINE = (
+#     'app.pipeline.send_otp_code',
+# )
 
 AUTHENTICATION_BACKENDS={
     'social_core.backends.auth0.Auth0OAuth2',
@@ -99,6 +105,27 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
+# Конфигурация Celery
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+# Для celery-beat (расписание задач)
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+CELERYD_HIJACK_ROOT_LOGGER = False
+CELERYD_LOG_LEVEL = 'DEBUG'
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
 }
 
@@ -166,6 +193,6 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 LOGIN_URL='login/auth0'
-LOGIN_REDIRECT_URL='app/profiles'
+LOGIN_REDIRECT_URL='/app/profile'
 LOGOUT_URL = 'logout'
-LOGOUT_REDIRECT_URL='/'
+LOGOUT_REDIRECT_URL='/app/'
