@@ -17,13 +17,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-AUTH_TRAILING_SLASH=False
-AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID= os.getenv("AUTH0_CLIENT_ID")
-AUTH0_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
-AUTH0_SCOPE = ['openid', 'profile', 'email']
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social_django',
     'drf_yasg',
     'rest_framework',
     'app',
@@ -63,6 +57,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+SOCIAL_AUTH_TRAILING_SLASH=False
+SOCIAL_AUTH_AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+SOCIAL_AUTH_AUTH0_KEY= os.getenv("AUTH0_CLIENT_ID")
+SOCIAL_AUTH_AUTH0_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
+SOCIAL_AUTH_AUTH0_SCOPE = ['openid', 'profile', 'email']
+
+AUTHENTICATION_BACKENDS={
+    'social_core.backends.auth0.Auth0OAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+}
 
 ROOT_URLCONF = 'task_backend.urls'
 
@@ -117,6 +122,10 @@ REST_FRAMEWORK = {
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -155,3 +164,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+LOGIN_URL='login/auth0'
+LOGIN_REDIRECT_URL='app/profiles'
+LOGOUT_URL = 'logout'
+LOGOUT_REDIRECT_URL='/'
