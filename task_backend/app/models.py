@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
@@ -27,12 +26,3 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
-
-
-class OTP(models.Model):
-    email = models.EmailField()
-    code = models.CharField(max_length=6)
-    expires_at = models.DateTimeField()
-
-    def is_valid(self):
-        return self.expires_at > timezone.now()
