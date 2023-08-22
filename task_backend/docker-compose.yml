@@ -35,6 +35,17 @@ services:
       - backend
     restart: always
 
+  celery_worker:
+    build: .
+    command: >
+      sh -c "sleep 10 && celery -A task_backend worker --loglevel=info"
+    environment:
+      - DJANGO_SETTINGS_MODULE=task_backend.settings
+    depends_on:
+      - db
+      - redis
+      - backend
+
 volumes:
   postgres_data:
   redis_data:

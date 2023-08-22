@@ -66,9 +66,24 @@ SOCIAL_AUTH_AUTH0_KEY= os.getenv("AUTH0_CLIENT_ID")
 SOCIAL_AUTH_AUTH0_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
 SOCIAL_AUTH_AUTH0_SCOPE = ['openid', 'profile', 'email']
 
-# SOCIAL_AUTH_PIPELINE = (
-#     'app.pipeline.send_otp_code',
-# )
+
+SOCIAL_AUTH_AUTH0_PIPELINE = (
+    'social_core.pipeline.user.get_username', 
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.user.user_details',
+    'app.pipeline.send_welcome_email_celery',
+)
+
+
+# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+# EMAIL_HOST = os.getenv("EMAIL_HOST")
+# EMAIL_PORT = os.getenv("EMAIL_PORT")
+# EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD ")
+
+# SERVER_EMAIL = EMAIL_HOST_USER
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTHENTICATION_BACKENDS={
     'social_core.backends.auth0.Auth0OAuth2',
@@ -113,8 +128,9 @@ DATABASES = {
 }
 
 # Конфигурация Celery
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'
+
 
 # Для celery-beat (расписание задач)
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
@@ -123,15 +139,15 @@ CELERYD_HIJACK_ROOT_LOGGER = False
 CELERYD_LOG_LEVEL = 'DEBUG'
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://redis:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://redis:6379/0',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         }
+#     }
+# }
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
@@ -200,6 +216,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_URL='login/auth0'
-LOGIN_REDIRECT_URL='/app/profiles/'
+LOGIN_REDIRECT_URL='/app/verify-email/'
 LOGOUT_URL = 'logout'
 LOGOUT_REDIRECT_URL='/app/'

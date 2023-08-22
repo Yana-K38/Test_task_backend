@@ -1,48 +1,29 @@
 from rest_framework import viewsets
-from rest_framework import status
-from rest_framework.response import Response
 from .models import CustomUser, UserProfile
 from .serializers import CustomUserSerializer, UserProfileSerializer
+
+# from django.urls import reverse
+# from django.shortcuts import redirect
+
 from rest_framework.views import APIView
-from .tasks import send_otp_email, OTPManager
-from social_django.models import UserSocialAuth
-from rest_framework import permissions
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import action
-
-class OTPSendView(APIView):
-    def post(self, request, format=None):
-        email = request.data.get('email')
-        if email:
-            otp = OTPManager.generate_and_store_otp(email)
-            send_otp_email(email)
-            return Response({'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
-        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+from rest_framework.response import Response
+from rest_framework import status
+# from .tasks import is_valid_verification_code
 
 
-class OTPVerifyView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, format=None):
-        email = request.data.get('email')
-        otp = request.data.get('otp')
-        
-        if email and otp and OTPManager.validate_otp(email, otp):
-            try:
-                social_user = UserSocialAuth.objects.get(provider='provider_name', uid=email)
-                user = social_user.user
-            except UserSocialAuth.DoesNotExist:
-                # Если социальный аккаунт не найден, создайте пользователя
-                user, created = CustomUser.objects.get_or_create(email=email)
-            
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
-        
-        return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
-
+class VerifyCodeAPIView(APIView):
+    pass
+    # def post(self, request):
+    #     serializer = VerificationCodeSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         entered_code = serializer.validated_data['code']
+    #         if is_valid_verification_code(request.user.email, entered_code):
+    #             profile_api_url = reverse('app/profiles/')
+    #             return Response({'detail': 'Code verified'}, status=status.HTTP_200_OK, headers={'Location': profile_api_url})
+    #         else:
+    #             return Response({'error': 'Invalid verification code'}, status=status.HTTP_400_BAD_REQUEST)
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()

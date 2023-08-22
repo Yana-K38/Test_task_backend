@@ -1,40 +1,32 @@
-from datetime import timedelta
-from django.utils import timezone
-import random
-import string
+from celery import shared_task
 from django.core.mail import send_mail
+import random
+from django.core.cache import cache
 
-class OTPManager:
-    otp_store = {}
+def generate_and_store_verification_code(email):
+    verification_code = generate_verification_code()
+    cache_key = f'verification_code_{email}'
+    cache.set(cache_key, verification_code, timeout=300)
 
-    @staticmethod
-    def generate_otp(length=6):
-        return ''.join(random.choices(string.digits, k=length))
+def is_valid_verification_code(email, entered_code):
+    cache_key = f'verification_code_{email}'
+    stored_code = cache.get(cache_key)
 
-    @classmethod
-    def generate_and_store_otp(cls, email):
-        otp = cls.generate_otp()
-        cls.otp_store[email] = {
-            'otp': otp,
-            'expires_at': timezone.now() + timedelta(seconds=60)
-        }
-        return otp
-
-    @classmethod
-    def validate_otp(cls, email, otp):
-        stored_otp_data = cls.otp_store.get(email)
-        if stored_otp_data and stored_otp_data['otp'] == otp and stored_otp_data['expires_at'] > timezone.now():
-            del cls.otp_store[email]
-            return True
+    if stored_code and stored_code == entered_code:
+        cache.delete(cache_key)
+        return True
+    else:
         return False
 
+def generate_verification_code():
+    code_length = 6
+    verification_code = ''.join(random.choice('0123456789') for _ in range(code_length))
+    return verification_code
 
-def send_otp_email(email):
-    otp = OTPManager.generate_and_store_otp(email)
-    
-    subject = 'Your OTP Code'
-    message = f'Your OTP code is: {otp}'
+@shared_task
+def send_verification_code_email(email, verification_code):
+    subject = 'Verification Code'
+    message = f'Your verification code is: {verification_code}'
     from_email = 'kurzukova.yana@yandex.ru'
     recipient_list = [email]
-    
     send_mail(subject, message, from_email, recipient_list)
